@@ -56,12 +56,15 @@ list_of_countries = hdi_data['Country'].to_list() #this will be our query
 test_countries = ["France","Ukraine", "Zimbabwe","China"] #this runs faster than using the full list of countries and can be helpful for testing things out
 
 search_list =  ["site: wikipedia.com " + word for word in list_of_countries]
-#Run our crawler
-text_data = write_crawl_results(search_list[131:], 1) #use test_countries instead if needed
-
-
-
 '''
+#Run our crawler
+text_data = write_crawl_results(search_list, 1) #use test_countries instead if needed
+'''
+text_data = open_pickle(base_path, "data.pkl")
+text_data["label"] = list_of_countries
+
+
+
 
 #Step 3: Merge the hd_data from our crawler to our initial dataframe 
 
@@ -99,4 +102,4 @@ full_data["stem_dict_sw"] = full_data.sw_dictionary_check.apply(stem_fun)
 
 #Use .apply(token_cnt) if interested in the length of the resulting body of text
 
-'''
+write_pickle(base_path, "final_data.pkl", full_data)
