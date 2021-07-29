@@ -10,7 +10,10 @@ from utils import *
 
 base_path = "C:/Users/pschw/Dropbox/Columbia/Courses/NLP for Python/Project/code/NLP_final_project/"
 
-data = open_pickle(base_path, "hdi_data_short.pkl")
+full_data = open_pickle(base_path, "full_data.pkl")
 
+#data set on which we run our models on - remove all unnecessary columns
+data_set = full_data.iloc[:,[1,2,3,6,7]]
+data_set.columns = ["country","hdi_cat","hdi","sw_dict","stem"]
 
 
