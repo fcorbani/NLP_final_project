@@ -5,24 +5,10 @@ Created on Sat Oct  5 13:05:36 2019
 @author: pathouli
 """
 
-def init():
-    from torpy import TorClient
-    hostname = 'ifconfig.me'  # It's possible use onion hostname here as well
-    with TorClient() as tor:
-        # Choose random guard node and create 3-hops circuit
-        with tor.create_circuit(3) as circuit:
-            # Create tor stream to host
-            with circuit.create_stream((hostname, 80)) as stream:
-                # Now we can communicate with host
-                stream.send(b'GET / HTTP/1.0\r\nHost: %s\r\n\r\n' % hostname.encode())
-                recv = stream.recv(1024)
-    return 0
-
 def my_scraper(tmp_url_in):
     from bs4 import BeautifulSoup
     import requests
     import re
-    import time
     tmp_text = ''
     try:
         content = requests.get(tmp_url_in, timeout=10)
@@ -33,15 +19,8 @@ def my_scraper(tmp_url_in):
         tmp_text = [word.text for word in tmp_text]
         tmp_text = ' '.join(tmp_text)
         tmp_text = re.sub('\W+', ' ', re.sub('xa0', ' ', tmp_text))
-    except:
-        print("Connection refused by the server..")
-        print("Let me sleep for 5 seconds")
-        print("ZZzzzz...")
-        time.sleep(5)
-        print("Was a nice sleep, now let me continue...")
+    except requests.exceptions.Timeout:
         pass
-    # except requests.exceptions.Timeout:
-    #     pass
     return tmp_text
 
 def fetch_urls(query_tmp, cnt):
@@ -96,6 +75,34 @@ def fetch_urls(query_tmp, cnt):
         clean_links.append(clean.group(1))
 
     return clean_links
+
+def clean_txt(var_in):
+    '''
+    a function that lower cases letters, removes special characters
+    and stopwords, and performs an American dictionary check
+    '''
+    import enchant
+    import re
+    import nltk
+    from nltk.corpus import stopwords
+    #remove special characters and lower case letters
+    var_in = re.sub("[^A-Za-z]+"," ",var_in.lower()) 
+    sw = stopwords.words('english')    
+    #remove stopwords
+    clean_text = [word for word in var_in.split() if word not in sw]
+    #do dictionary check
+    d = enchant.Dict("en_US")
+    clean_text = [word for word in clean_text if d.check(word)]
+    clean_text = ' '.join(clean_text)
+    return clean_text
+
+def stem_txt(var_in):
+    # to get the words stems of a text string
+    from nltk.stem import PorterStemmer
+    my_stem = PorterStemmer()
+    tmp = [my_stem.stem(word) for word in var_in.split()]
+    tmp = ' '.join(tmp)
+    return tmp
  
 def write_crawl_results(my_query, the_cnt_in):
     #let use fetch_urls to get URLs then pass to the my_scraper function 
@@ -104,17 +111,45 @@ def write_crawl_results(my_query, the_cnt_in):
 
     tmp_pd = pd.DataFrame()       
     for q_blah in my_query:
-        init()
         the_urls_list = fetch_urls(q_blah, the_cnt_in)
 
         for word in the_urls_list:
             tmp_txt = my_scraper(word)
+            #tmp_sw_txt = clean_txt(tmp_txt)
+            #tmp_sw_stem_txt = stem_txt(tmp_sw_txt)
             if len(tmp_txt) != 0:
                 try:
                     tmp_pd = tmp_pd.append({'body_basic': tmp_txt,
+                                            #'body_sw': tmp_sw_txt,
+                                            #'body_sw_stem': tmp_sw_stem_txt,
                                             'label': re.sub(' ', '_', q_blah)
                                             }, ignore_index=True)
                     print (word)
                 except:
                     pass
     return tmp_pd
+
+
+def word_freq(query,n_links=10):
+    import pandas as pd
+    #get body and labeled queries
+    data = write_crawl_results(query, n_links) 
+    # create empty dictionary
+    my_dict = dict() 
+    for name in set(data.label):
+        #create empty dataframe
+        my_pd = pd.DataFrame() 
+        # collect all text bodies related to the query element in a series
+        my_sr = data[data.label==name].body_basic 
+        #merge all text bodies into string
+        my_str = ' '.join(my_sr).lower() 
+        # get a set of unique words in the string
+        my_set = set(my_str.split()) 
+        for word in my_set:
+            #count how often each word appears in the string
+            word_cnt = my_str.count(word) 
+            #add unique words and their frequency to the df
+            my_pd = my_pd.append({"Word":word, "Frequency":word_cnt},ignore_index=True) 
+        #locate query names as keys and assign the dfs to respective values
+        my_dict[name] = my_pd 
+    return my_dict
