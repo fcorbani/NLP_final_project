@@ -94,12 +94,17 @@ full_data["body_clean"] = full_data.body_basic.apply(clean_text)
 #Remove stop words
 full_data["rem_sw"] = full_data.body_clean.apply(rem_sw) 
 
+full["sw_dictionary_check"] = full_data.sw_dictionary_check.apply(rem_letters)
+
 #Dictionnary check
 full_data["sw_dictionary_check"] = full_data.rem_sw.apply(dictionary_check) 
+
+#eliminate single letter or two letters (I do not know why they are still there)
+full_data["sw_dictionary_check"] = full_data.sw_dictionary_check.apply(rem_letters)
 
 #Stemming
 full_data["stem_dict_sw"] = full_data.sw_dictionary_check.apply(stem_fun)
 
 #Use .apply(token_cnt) if interested in the length of the resulting body of text
 
-write_pickle(base_path, "final_data.pkl", full_data)
+write_pickle(base_path, "full_data.pkl", full_data)
