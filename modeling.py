@@ -35,20 +35,20 @@ pca_tfidf_stem = my_pca(my_tfidf_stem, base_path + "output/")
 # this is not for predictions themselves but to optimize the parameters
 #x is the independent variable, y the dependent variable
 x_train_param, x_pred, y_train_param_val, y_pred = split_data(
-    pca_vec_text, country_set.hdi_cat, 0.8)
+    my_tfidf_text, country_set.hdi_cat, 0.8)
 
 #specify parameters
 ## random forrest
 # parameters = {'n_estimators':[10, 100], 'max_depth':[None, 10, 100],
 #               "random_state": [456]}
 ## support vector machine
-parameters = {'C':[0.01, 1.0], 'kernel':['linear', 'poly'],
-              "random_state": [123], 'probability': [True]}
+# parameters = {'C':[0.01, 1.0], 'kernel':['linear', 'poly'],
+#               "random_state": [123], 'probability': [True]}
 ## naive bayes
-# parameters = {'alpha':[0.001, 1.0], "fit_prior": [True, False]}
+parameters = {'alpha':[0.001, 1.0], "fit_prior": [True, False]}
 
 #chose model to use
-flag = "svm"
+flag = "nb"
 
 #model training and specifications
 optimal_params = grid_search_fun(x_pred, y_pred, parameters, flag)
