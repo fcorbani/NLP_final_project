@@ -34,7 +34,7 @@ pca_tfidf_stem = my_pca(my_tfidf_stem, base_path + "output/")
 # now we split the data in training and test set
 # this is not for predictions themselves but to optimize the parameters
 #x is the independent variable, y the dependent variable
-x_train_param, x_pred, y_train_param_val, y_pred = split_data(
+x_train_param, x_pred, y_train_param, y_pred = split_data(
     my_tfidf_text, country_set.hdi_cat, 0.8)
 
 #specify parameters
@@ -51,7 +51,7 @@ parameters = {'alpha':[0.001, 1.0], "fit_prior": [True, False]}
 flag = "nb"
 
 #model training and specifications
-optimal_params = grid_search_fun(x_pred, y_pred, parameters, flag)
+optimal_params = grid_search_fun(x_train_param, y_train_param, parameters, flag)
 
 #now we split into training and testing set
 x_train, x_test, y_train, y_test = split_data(x_pred, y_pred, 0.2)
