@@ -44,6 +44,12 @@ def rem_sw(var_in):
     clean_text = ' '.join(clean_text)
     return clean_text
 
+def rem_letters(var_in):
+    my_ar = var_in.split()
+    my_ar_new = [word for word in my_ar if len(word) > 2]
+    my_txt = " ".join(my_ar_new) 
+    return my_txt
+
 def unique_words(var_in):
     tmp = len(set(var_in.split()))
     return tmp
